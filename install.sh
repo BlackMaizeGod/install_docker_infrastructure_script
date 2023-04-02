@@ -9,7 +9,7 @@ if ! [ "$(sudo id -u)" = 0 ]; then
     exit 1;
 fi
 
-sudo apt update
+sudo apt update -y
 sudo apt upgrade -y
 
 
@@ -30,7 +30,7 @@ sudo add-apt-repository ppa:alessandro-strada/ppa
 
     printf "\n>>> Running Ubuntu upgrade >>>\n"
 
-sudo apt update
+sudo apt update -y
 sudo apt upgrade -y
 sudo apt install net-tools -y
 
@@ -44,20 +44,20 @@ sudo apt install guake -y
     printf "\n>>> Git is going to be installed >>>\n"
 
 # Install Git
-sudo apt install git
+sudo apt install git -y
 
 
     printf "\n>>> Google drive ocamlfuse - synchronizer for google drive is going to be installed. See README.md for configuring it >>>\n"
 
 # Install Google drive ocamlfuse
-sudo apt-get install google-drive-ocamlfuse
+sudo apt-get install google-drive-ocamlfuse -y
 
 
     printf "\n>>> MySQL and Redis Clients are going to be installed >>>\n"
 
 # Install MySQL and Redis Clients
 sudo apt install mysql-client -y
-sudo apt install redis-tools
+sudo apt install redis-tools -y
 
 
     printf "\n>>> Docker Infrastructure is going to be installed from https://github.com/BlackMaizeGod/docker_infrastructure.git >>>\n"
@@ -67,49 +67,58 @@ sudo apt install docker.io docker-compose -y
 sudo systemctl enable docker
 # This is to execute Docker command without sudo. Will work after logout/login because permissions should be refreshed
 sudo usermod -aG docker "${USER}"
-# shellcheck disable=SC2164
-cd ~/
-git clone https://github.com/BlackMaizeGod/docker_infrastructure.git
-# shellcheck disable=SC2164
-cd ~/docker_infrastructure
-git config core.fileMode false
+# Clone Docker Infrastructure
+sudo mkdir /var/www
+sudo chown -R "${USER}" /var/www
+curl https://raw.githubusercontent.com/BlackMaizeGod/docker_infrastructure/main/docker-compose.yml > /var/www/docker-compose.yml
 
 
     printf "\n>>> Creating files and folders... >>>\n"
 
-# Directory ~/apps serves for locating projects
-mkdir -p ~/apps/example
-printf "<?php\n\ndeclare(strict_types=1);\n\nphpinfo();" > ~/apps/example/index.php
+# Directory /var/www/html serves for locating projects, /var/www/hosts for nginx configs
+mkdir -p /var/www/hosts /var/www/html/example
+printf "<?php\n\ndeclare(strict_types=1);\n\nphpinfo();" > /var/www/html/example/index.php
+printf "server {
+        listen 80;
+        root /var/www/html/example;
+        index index.php index.html index.htm;
+        server_name example.local;
+
+         #access_log /var/www/html/example/access.log;
+         #error_log /var/www/html/example/error.log warn;
+
+        location / {
+            try_files \$uri \$uri/ =404;
+        }
+
+        location ~ \.php$ {
+            try_files \$uri =404;
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            fastcgi_pass php7.4-fpm:9000;
+            fastcgi_index index.php;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+            fastcgi_param PATH_INFO \$fastcgi_path_info;
+        }
+}" > /var/www/hosts/example.local.conf
 
 # Configure infrastructure hosts
 echo "
 
 #### START: Docker Infrastructure
 
-137.172.17.178              phpmyadmin.local
+137.172.17.81              phpmyadmin.local              ### http://phpmyadmin.local/
+137.172.17.25              mailhog                       ### http://mailhog:8025/
+137.172.17.92              elasticsearch7                ### http://elasticsearch7:9200/
+137.172.17.80              example.local                 ### http://example.local/
 
-137.172.17.56               mysql56
-137.172.17.57               mysql57
-137.172.17.80               mysql80
-137.172.17.101              mariadb101
-137.172.17.102              mariadb102
-137.172.17.103              mariadb103
-137.172.17.104              mariadb104
-
-137.172.17.92               elasticsearch           ### http://elasticsearch:9200/
-137.172.17.79               redis                   ### redis-cli -h redis -p 6379 -a <password>
-137.172.17.11               memcached               ### echo stats | nc memcached 11211
-137.172.17.25               mailhog                 ### http://mailhog:8025/
-
-#### END: Docker Infrastructure ###
-
-137.172.17.81 example.local" | sudo tee -a /etc/hosts
+#### END: Docker Infrastructure ###" | sudo tee -a /etc/hosts
 
 
     printf "\n>>> PHP and common packages are going to be installed >>>\n"
 
 # Install PHP and common packages
-sudo apt install php-cli php-xdebug php-json php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath
+sudo apt install php-cli php-xdebug php-json php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath -y
 sudo bash -c "cat <<EOT>> $(php --ini | grep 'xdebug.ini' | awk '{t=length($0)}END{print substr($0,0,t-1)}')
 
 xdebug.mode=debug
@@ -123,7 +132,18 @@ EOT"
 
 # Install Node Package Manager
 sudo apt install nodejs -y
-sudo chown "${USER}":"${USER}" -R ~/.npm/
+sudo apt install npm -y
+
+
+    printf "\n>>> ESLint and Stylelint are going to be installed >>>\n"
+
+# Install ESLint
+sudo npm i -g eslint@7 --save-dev
+# Install Stylelint
+sudo npm i -g stylelint@13 --save-dev
+# Configure directory rights
+sudo chown -R "$USER" /usr/lib/node_modules
+sudo chown -R "$USER" /usr/local/lib/node_modules
 
 
     printf "\n>>> Creating aliases and enabling color output >>>\n"
@@ -136,38 +156,64 @@ set completion-ignore-case On
 # PHP xDebug 3.x config
 export XDEBUG_SESSION=PHPSTORM
 
-function getContainer() {
-  for file in ~/docker_infrastructure/hosts/*.conf
+getContainerName() {
+  for file in /var/www/hosts/*.conf
   do
-    if grep -q \"/var/www/\$(\"pwd\" | awk -F '/' '{print \$NF}');$\" \"\$file\"; then
+    if grep -q \"/var/www/html/\$(\"pwd\" | awk -F '/' '{print \$NF}');$\" \"\$file\"; then
       grep -o 'php.\..-fpm' \"\$file\";
     fi
   done
 }
 
-alias MY56='mysql -uroot -proot -hmysql56 --port=3306 --show-warnings'
-alias MY57='mysql -uroot -proot -hmysql57 --port=3306 --show-warnings'
-alias MY80='mysql -uroot -proot -hmysql80 --port=3306 --show-warnings'
-alias MY101='mysql -uroot -proot -hmariadb101 --port=3306 --show-warnings'
-alias MY102='mysql -uroot -proot -hmariadb102 --port=3306 --show-warnings'
-alias MY103='mysql -uroot -proot -hmariadb103 --port=3306 --show-warnings'
-alias MY104='mysql -uroot -proot -hmariadb104 --port=3306 --show-warnings'
+getContainerAddress() {
+  docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \"\$1\"
+}
+
+enterContainer() {
+  docker exec -it \"\$1\" -w\"\$(pwd)\" \"\$(getContainerName)\" bash
+}
+
+executeCommand() {
+  docker exec -it -u1000 -w\"\$(pwd)\" \"\$(getContainerName)\" php bin/magento \"\$@\"
+}
+
+noContainer() {
+  printf \"
+###############################################
+# Infrastructure has not a suitable container #
+###############################################
+
+\"
+}
+
+alias MY56='mysql -uroot -proot -h\"\$(getContainerAddress mysql56)\" --show-warnings'
+alias MY57='mysql -uroot -proot -h\"\$(getContainerAddress mysql57)\" --show-warnings'
+alias MY80='mysql -uroot -proot -h\"\$(getContainerAddress mysql80)\" --show-warnings'
+alias MY101='mysql -uroot -proot -h\"\$(getContainerAddress mariadb101)\" --show-warnings'
+alias MY102='mysql -uroot -proot -h\"\$(getContainerAddress mariadb102)\" --show-warnings'
+alias MY103='mysql -uroot -proot -h\"\$(getContainerAddress mariadb103)\" --show-warnings'
+alias MY104='mysql -uroot -proot -h\"\$(getContainerAddress mariadb104)\" --show-warnings'
 
 alias RNG='docker exec -it nginx service nginx restart'
-alias BASH='[ -n \"\$(getContainer)\" ] && docker exec -it -u1000 -w/var/www/\$(basename \$(pwd)) \"\$(getContainer)\" bash || printf \"\n\n###############################################\n# Infrastructure has not a suitable container #\n###############################################\n\n\n\"'
-alias BASHR='[ -n \"\$(getContainer)\" ] && docker exec -it -w/var/www/\$(basename \$(pwd)) \"\$(getContainer)\" bash || printf \"\n\n###############################################\n# Infrastructure has not a suitable container #\n###############################################\n\n\n\"'
-alias CR='rm -rf var/cache/* var/page_cache/* var/view_preprocessed/* var/di/* var/generation/* generated/code/* generated/metadata/* pub/static/frontend/* pub/static/adminhtml/* pub/static/deployed_version.txt'" >> ~/.bash_aliases
+alias BASH='[ -n \"\$(getContainerName)\" ] && enterContainer -u1000 || noContainer'
+alias BASHR='[ -n \"\$(getContainerName)\" ] && enterContainer -uroot || noContainer'
+
+alias CR='rm -rf var/cache/* var/page_cache/* var/view_preprocessed/* var/di/* var/generation/* generated/code/* generated/metadata/* pub/static/frontend/* pub/static/adminhtml/* pub/static/deployed_version.txt'
+
+alias SU='executeCommand setup:upgrade'
+alias CC='executeCommand cache:clean'
+alias CF='executeCommand cache:flush'
+alias RE='executeCommand indexer:reindex'
+alias SDC='executeCommand setup:di:compile'
+alias SCD='executeCommand setup:static-content:deploy'
+alias CI='docker exec -it -u1000 -w\"\$(pwd)\" \"\$(getContainerName)\" composer install'" >> ~/.bash_aliases
 
 
     printf "\n>>> Magento 2 coding standards is going to be installed - https://github.com/magento/magento-coding-standard >>>\n"
 
 # Install Coding Standards
-# shellcheck disable=SC2164
-cd ~/apps
-git clone https://github.com/magento/magento-coding-standard.git
-# shellcheck disable=SC2164
-cd ./magento-coding-standard
-git config core.fileMode false
+cd /var/www/html/ && git clone https://github.com/magento/magento-coding-standard.git
+cd /var/www/html/magento-coding-standard && git config core.fileMode false
 
 
     printf "\n>>> Start System Configuring >>>\n"
@@ -310,7 +356,7 @@ MimeType=x-scheme-handler/clipboard;" > ~/.config/autostart/diodon.desktop
 
 # System reboot
     printf "\033[31;1m"
-# shellcheck disable=SC2039
+# shellcheck disable=SC2039,SC3045
 read -r -p "/**********************
 *
 *    ATTENTION!

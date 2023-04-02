@@ -43,5 +43,12 @@
  - `MY104` - connect to maria_db 10.4 cli inside docker container
  - `RNG` - restart nginx container, may be useful after adding new host for project
  - `BASH` - run from project folder root. Connect to shell inside php-fpm container, which serves the project 
- - `BASHR` - the same as upper alias but cli user is root
- - `CR` - remove cache and static files directories
+ - `BASHR` - the same, but cli user is root
+ - `CR` -  run from project folder root. Remove cache and static files directories
+ - `SU` - run from project folder root. Execute `setup:upgrade` into docker container
+ - `CC` - run from project folder root. Execute `cache:clean` into docker container
+ - `CF` - run from project folder root. Execute `cache:flush` into docker container
+ - `RE` - run from project folder root. Execute `indexer:reindex` into docker container
+ - `SDC` - run from project folder root. Execute `setup:di:compile` into docker container
+ - `SCD` - run from project folder root. Execute `setup:static-content:deploy` into docker container
+ - `CI` - run from project folder root. Execute `composer install` into docker container
