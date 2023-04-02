@@ -2,16 +2,17 @@
 https://github.com/BlackMaizeGod/docker_infrastructure
 
 ### Notices:
- - After installation go to `~/docker_infrastructure` and run `docker-compose up -d --build` for building infrastructure
- - Magento coding standards project was pulled. For deploying it go to `~/apps/magento-coding-standard`,
+ - After installation go to `/var/www` and run `docker-compose up -d --build` for building infrastructure
+ - Magento coding standards project was pulled. For deploying it go to `/var/www/html/magento-coding-standard`,
    use `BASH` alias for enter inside container and run `composer install`.
-   If you need no `npm install` run it outside container.
  - `google-drive-ocamlfuse` was installed. You can configure it in 3 simple steps:
    run `google-drive-ocamlfuse` from terminal and login, then run `mkdir /safe`,
    finally `google-drive-ocamlfuse /safe`
  - PhpMyAdmin available on http://phpmyadmin.local/
  - MailHog available on http://mailhog:8025/
- - In `/etc/hosts` you can see the way how you can connect to the required docker service
+ - Elasticsearch available on http://elasticsearch7:9200/
+ - To check the Redis use: `redis-cli -h $(getContainerAddress redis) -p 6379 -a <password>`
+ - To check the Memcached use: `echo stats | nc $(getContainerAddress memcached) 11211`
 
 ### Recommend to Install:
  - Firefox (preinstalled / need to configure)
