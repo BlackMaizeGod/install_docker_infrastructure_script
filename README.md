@@ -1,5 +1,4 @@
-# Installation script for Docker Infrastructure
-https://github.com/BlackMaizeGod/docker_infrastructure
+# Installation script for [Docker Infrastructure](https://github.com/BlackMaizeGod/docker_infrastructure)
 
 ### Notices:
  - After installation go to `/var/www` and run `docker-compose up -d --build` for building infrastructure
