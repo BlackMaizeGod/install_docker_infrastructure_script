@@ -110,6 +110,7 @@ echo "
 137.172.17.81              phpmyadmin.local              ### http://phpmyadmin.local/
 137.172.17.25              mailhog                       ### http://mailhog:8025/
 137.172.17.92              elasticsearch7                ### http://elasticsearch7:9200/
+137.172.17.72              rabbitmq                      ### http://rabbitmq:15672/
 137.172.17.80              example.local                 ### http://example.local/
 
 #### END: Docker Infrastructure ###" | sudo tee -a /etc/hosts
@@ -206,6 +207,7 @@ alias CF='executeCommand cache:flush'
 alias RE='executeCommand indexer:reindex'
 alias SDC='executeCommand setup:di:compile'
 alias SCD='executeCommand setup:static-content:deploy'
+alias CRR='executeCommand cron:run'
 alias CI='docker exec -it -u1000 -w\"\$(pwd)\" \"\$(getContainerName)\" composer install'" >> ~/.bash_aliases
 
 

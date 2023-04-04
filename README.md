@@ -10,6 +10,7 @@
  - PhpMyAdmin available on http://phpmyadmin.local/
  - MailHog available on http://mailhog:8025/
  - Elasticsearch available on http://elasticsearch7:9200/
+ - RabbitMQ available on http://rabbitmq:15672/
  - To check the Redis use: `redis-cli -h $(getContainerAddress redis) -p 6379 -a <password>`
  - To check the Memcached use: `echo stats | nc $(getContainerAddress memcached) 11211`
 
@@ -51,4 +52,5 @@
  - `RE` - run from project folder root. Execute `indexer:reindex` into docker container
  - `SDC` - run from project folder root. Execute `setup:di:compile` into docker container
  - `SCD` - run from project folder root. Execute `setup:static-content:deploy` into docker container
+ - `CRR` - run from project folder root. Execute `cron:run` into docker container
  - `CI` - run from project folder root. Execute `composer install` into docker container
