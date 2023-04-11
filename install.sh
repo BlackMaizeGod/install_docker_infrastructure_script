@@ -136,17 +136,6 @@ sudo apt install nodejs -y
 sudo apt install npm -y
 
 
-    printf "\n>>> ESLint and Stylelint are going to be installed >>>\n"
-
-# Install ESLint
-sudo npm i -g eslint@7 --save-dev
-# Install Stylelint
-sudo npm i -g stylelint@13 --save-dev
-# Configure directory rights
-sudo chown -R "$USER" /usr/lib/node_modules
-sudo chown -R "$USER" /usr/local/lib/node_modules
-
-
     printf "\n>>> Creating aliases and enabling color output >>>\n"
 
 # Configure aliases
@@ -209,13 +198,6 @@ alias SDC='executeCommand setup:di:compile'
 alias SCD='executeCommand setup:static-content:deploy'
 alias CRR='executeCommand cron:run'
 alias CI='docker exec -it -u1000 -w\"\$(pwd)\" \"\$(getContainerName)\" composer install'" >> ~/.bash_aliases
-
-
-    printf "\n>>> Magento 2 coding standards is going to be installed - https://github.com/magento/magento-coding-standard >>>\n"
-
-# Install Coding Standards
-cd /var/www/html/ && git clone https://github.com/magento/magento-coding-standard.git
-cd /var/www/html/magento-coding-standard && git config core.fileMode false
 
 
     printf "\n>>> Start System Configuring >>>\n"

@@ -2,8 +2,6 @@
 
 ### Notices:
  - After installation go to `/var/www` and run `docker-compose up -d --build` for building infrastructure
- - Magento coding standards project was pulled. For deploying it go to `/var/www/html/magento-coding-standard`,
-   use `BASH` alias for enter inside container and run `composer install`.
  - `google-drive-ocamlfuse` was installed. You can configure it in 3 simple steps:
    run `google-drive-ocamlfuse` from terminal and login, then run `mkdir /safe`,
    finally `google-drive-ocamlfuse /safe`
