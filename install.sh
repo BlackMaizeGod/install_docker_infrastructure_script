@@ -73,13 +73,27 @@ sudo chown -R "${USER}" /var/www
 curl https://raw.githubusercontent.com/BlackMaizeGod/docker_infrastructure/main/docker-compose.yml > /var/www/docker-compose.yml
 
 
+    printf "\n>>> MkCert is going to be installed >>>\n"
+# Install the set of libraries of the Network Security Service
+sudo apt install libnss3-tools -y
+# Install MkCert
+sudo apt install mkcert -y
+# Install the local CA in the system trust store
+mkcert -install
+
+
     printf "\n>>> Creating files and folders... >>>\n"
 
-# Directory /var/www/html serves for locating projects, /var/www/hosts for nginx configs
-mkdir -p /var/www/hosts /var/www/html/example
+# Directory /var/www/html serves for locating projects, /var/www/hosts for nginx configs, /var/www/ssl for storing certificates
+mkdir -p /var/www/hosts /var/www/ssl /var/www/html/example
+cd /var/www/ssl && mkcert example.local
 printf "<?php\n\ndeclare(strict_types=1);\n\nphpinfo();" > /var/www/html/example/index.php
 printf "server {
-        listen 80;
+         #listen 80;
+        listen 443 ssl;
+        ssl_certificate /var/www/ssl/example.local.pem;
+        ssl_certificate_key /var/www/ssl/example.local-key.pem;
+
         root /var/www/html/example;
         index index.php index.html index.htm;
         server_name example.local;

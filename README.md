@@ -11,6 +11,7 @@
  - RabbitMQ available on http://rabbitmq:15672/
  - To check the Redis use: `redis-cli -h $(getContainerAddress redis) -p 6379 -a <password>`
  - To check the Memcached use: `echo stats | nc $(getContainerAddress memcached) 11211`
+ - To generate SSL certificates for your website use: `cd /var/www/ssl && mkcert <domain-1.local> <domain-2.local> ...`
 
 ### Recommend to Install:
  - Firefox (preinstalled / need to configure)
